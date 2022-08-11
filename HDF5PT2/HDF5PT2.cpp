@@ -7,6 +7,7 @@
 #define ImageWidth 2040 
 #define ImageHeight 2040
 #define ImageNum   64 
+//State determines which small proof of concept we are running
 int main()
 {
     hid_t file_id, dataspace_id,dataset_id,attribute_id;
@@ -14,6 +15,7 @@ int main()
     int state;
     std::cout << "1 for Write 0 for Read \n";
     std::cin >> state;
+    //Writes out simple ints to HDF5 file
     if (state == 1) {
 
 
@@ -41,6 +43,7 @@ int main()
         status = H5Sclose(dataspace_id);
         status = H5Fclose(file_id);
     }
+    //Reads the values written in state 1
     else if(state == 0) {
         int dset_data[4][6];
         herr_t status;
@@ -50,6 +53,7 @@ int main()
         status = H5Dread(dataset_id, H5T_NATIVE_INT, H5S_ALL, H5S_ALL, H5P_DEFAULT, dset_data);
         int x = 12 + 12;
     }
+    //Writes out ints and floats
     else if (state == 2) {
         std::cout << "We Writing single elements\n";
         int attr_data = 20;
@@ -70,6 +74,7 @@ int main()
         status = H5Fclose(file_id);
 
     }
+    //Reads in ints and floats from state 2
     else if (state == 3) {
         int Sig = -1;
         std::cout << "We reading single elements\n";
@@ -85,6 +90,7 @@ int main()
         status = H5Dclose(dataset_id);
         status = H5Fclose(file_id);
     }
+    //Writes out a 100 by 100 array of shorts
     else if (state == 4) {
         std::cout << "We writing big arrays\n";
         file_id = H5Fcreate("BigArray.h5", H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
@@ -109,6 +115,7 @@ int main()
         status = H5Sclose(dataspace_id);
         status = H5Fclose(file_id);
     }
+    //Reads in a 100 by 100 array of shorts from state 4
     if (state == 5) {
         std::cout << "We reading an array\n";
         short attr_data[200][100];
@@ -119,6 +126,7 @@ int main()
         status = H5Fclose(file_id);
 
     }
+    //Writes out simulated image data. Relies on defines at top to determine the size of the array being written. Data is generic 
     if (state == 6) {
         unsigned short buffer[2040];
         int imageindex = 0;
@@ -126,23 +134,14 @@ int main()
         std::cout << "We pretending to write data\n";
         file_id = H5Fcreate("ImageData.h5", H5F_ACC_TRUNC, H5P_DEFAULT, H5P_DEFAULT);
         unsigned short* Image = new unsigned short[ImageHeight*ImageWidth];
-       // int ** Image = (int **)malloc(ImageHeight * sizeof(int*));
-        //for (int i = 0; i < ImageHeight; i++) {
-          //  Image[i] = (int*)malloc((ImageWidth * sizeof(int)));
-        //}
         for (int k = 0; k < ImageNum; k++) {
 
             for (int i = 0; i < ImageWidth * ImageWidth; i++) {
                   Image[i]= 12 + imageindex;
 
             }
-            //for (int i = 0; i < ImageWidth; i++) {
-              //  std::cout << Image[i] << + ", ";
-            //}
-            //std::cout << std::endl;
             hsize_t dims[1];
             dims[0] = ImageHeight * ImageWidth;
-            //dims[1] = ImageWidth;
             dataspace_id = H5Screate_simple(1, dims, NULL);
             std::string DATATYPENAME = DataName + std::to_string(imageindex);
             dataset_id = H5Dcreate(file_id, DATATYPENAME.c_str(), H5T_STD_U16BE, dataspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
@@ -151,12 +150,12 @@ int main()
             status = H5Sclose(dataspace_id);
             imageindex++;
         }
-        delete Image;
+        delete []Image;
 
         status = H5Fclose(file_id);
 
-       //  Image;
     }
+    //Reads in the images using the defined datas at top. Could remap to rely on generic metadata
     if (state == 7) {
         std::string DataTemplate= "Image_";
         unsigned short* DataFrames[ImageNum];
